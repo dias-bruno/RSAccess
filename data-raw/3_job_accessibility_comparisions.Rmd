@@ -1,0 +1,150 @@
+---
+title: "Untitled"
+author: "Bruno Dias dos Santos"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sf)
+library(ggplot2)
+```
+
+```{r}
+clusters <- st_read("vectors\\grid_classified.shp")
+```
+
+```{r}
+sam <- read_sf("vectors/grid_sam.shp")
+```
+
+```{r}
+summary(sam)
+```
+```{r}
+data <- merge(as.data.frame(grid), sam, by.x = 'id', by.y = 'id', all.x=TRUE)
+data <- st_as_sf(data, crs = st_crs(grid))
+```
+
+```{r}
+data <- data[!(is.na(data$Cluster)),]
+```
+
+
+```{r}
+par(mfrow = c(2, 2))
+
+custom_colors <- c("#d6395e", "#33a02c", "#b0b0b0", "#ffb400", "#1f78f2", "#72df88")
+
+# Boxplot 1: cy_ac_emp
+boxplot(wa_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
+ylab = "Walking", col = custom_colors, outline = FALSE)
+
+# Boxplot 2: pto_ac_emp
+boxplot(cy_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
+ylab = "Cycling", col = custom_colors, outline = FALSE)
+
+# Boxplot 3: ptp_ac_emp
+boxplot(pto_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
+ylab = "Public transit", col = custom_colors, outline = FALSE)
+
+# Boxplot 4: wa_ac_emp
+boxplot(ptp_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
+ylab = "Public transit (peak)", col = custom_colors, outline = FALSE)
+par(mfrow = c(1, 1))
+```
+
+```{r}
+
+# Set up the layout for the plots
+par(mfrow = c(2, 2), mar = c(4, 4, 0, 0), bg = "white")
+
+# Define a vector of custom colors
+custom_colors <- c("#d6395e", "#33a02c", "#b0b0b0", "#ffb400", "#1f78f2", "#72df88")
+
+# List of variables
+variables <- c("wa_ac_emp", "cy_ac_emp", "pto_ac_emp", "ptp_ac_emp")
+ylab_names <- c("Walking", "Cycling", "Public transit", "Public transit (peak)")
+
+# Create boxplots in a loop
+for (i in seq_along(variables)) {
+  boxplot(data[[variables[i]]] ~ data$Cluster,
+          xlab = "Spatial patterns",
+          ylab = ylab_names[i],
+          col = custom_colors,
+          outline = FALSE)
+}
+
+# Reset the layout
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)  # Adjust the margin back to default
+```
+
+# Walking
+
+```{r}
+ggplot() +
+  geom_sf(data = sam, aes(fill = wa_ac_emp), color = NA) +
+  labs(fill = "Job acessibility", title = "Walking") +
+  theme_minimal()
+```
+
+```{r}
+kruskal.test(wa_ac_emp ~ Cluster, data = data)
+```
+
+```{r}
+pairwise.wilcox.test(data$wa_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
+```
+
+
+# Cycling
+
+```{r}
+ggplot() +
+  geom_sf(data = sam, aes(fill = cy_ac_emp), color = NA) +
+  labs(fill = "Job acessibility", title = "Cycling") +
+  theme_minimal()
+```
+
+```{r}
+kruskal.test(cy_ac_emp ~ Cluster, data = data)
+```
+
+```{r}
+pairwise.wilcox.test(data$cy_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
+```
+# Public transit (off peak)
+```{r}
+ggplot() +
+  geom_sf(data = sam, aes(fill = pto_ac_emp), color = NA) +
+  labs(fill = "Job acessibility", title = "Public transit (off peak)") +
+  theme_minimal()
+```
+
+```{r}
+kruskal.test(pto_ac_emp ~ Cluster, data = data)
+```
+
+```{r}
+pairwise.wilcox.test(data$pto_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
+```
+
+# Public transit (peak)
+```{r}
+ggplot() +
+  geom_sf(data = sam, aes(fill = ptp_ac_emp), color = NA) +
+  labs(fill = "Job acessibility", title = "Public transit (peak)") +
+  theme_minimal()
+```
+
+```{r}
+kruskal.test(ptp_ac_emp ~ Cluster, data = data)
+```
+
+```{r}
+pairwise.wilcox.test(data$ptp_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
+```

@@ -1,0 +1,281 @@
+---
+title: "Untitled"
+author: "Bruno Dias dos Santos"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(sf)
+library(ggplot2)
+```
+
+```{r}
+cell_grid <- st_read("vectors\\grid_with_all_attributes.shp")
+```
+```{r}
+plot(st_geometry(cell_grid), axes = TRUE)
+```
+```{r}
+head(cell_grid,5)
+```
+
+```{r}
+names(cell_grid)
+```
+```{r}
+summary(cell_grid[,2:8])
+```
+```{r}
+ggplot() +
+  geom_sf(data = cell_grid, aes(fill = BP_mean), color = NA) + 
+  theme_minimal() 
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = sam, aes(fill = cy_ac_emp), color = NA) +
+  labs(fill = "Job acessibility", title = "Cycling") +
+  theme_minimal()
+```
+
+
+```{r}
+nrow(cell_grid)
+```
+
+```{r}
+df <- na.omit(cell_grid)
+nrow(df)
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+hist(as.numeric(unlist(cell_grid["BP_mean"])))
+```
+
+```{r}
+hist(cell_grid[(cell_grid$RES + cell_grid$COM) >= 0.1, ]$BP_mean)
+```
+
+```{r}
+subset <- as.data.frame(cell_grid[(cell_grid$RES + cell_grid$COM) >= 0.1, ])
+```
+
+
+```{r}
+df <- subset[,2:(length(subset)-1)]
+```
+
+```{r}
+pca_out <- prcomp(df, center = TRUE, scale = TRUE)
+```
+
+```{r}
+remove <- c()
+
+for(i in 1:length(names(df))){
+  if(var(df[,i])==0){
+    remove <- append(remove, i)
+  }
+}
+
+df <- subset(df, select = -remove)
+```
+
+
+```{r}
+pca_out <- prcomp(df, center = TRUE, scale = TRUE)
+```
+
+```{r}
+summary(pca_out)
+```
+```{r}
+biplot(pca_out)
+```
+
+```{r}
+# Calculating the proportion of variance explained by each principal component
+var <- pca_out$sdev^2 / sum(pca_out$sdev^2)
+
+# Converting variance to percentages
+var <- var * 100
+
+# Creating a variable to hold the cumulative sum of variance
+var_sum <- var
+
+# Calculating the cumulative sum of variance
+for (i in 2:length(var_sum)) {
+var_sum[i] <- var_sum[i] + var_sum[i - 1]
+}
+
+# Creating a plot of principal component variances
+plot(c(1:length(var)), var, xlab="Principal component",ylab="Variance explained", main = "Principal component variances", col = "blue", type = "b",ylim = c(0, max(var,var_sum)))
+
+# Adding a line plot for the cumulative sum of variance
+lines(c(1:length(var)), var_sum, col = "red")
+
+# Adding a legend
+legend("right", legend=c("Sum of variance", "Variance"),
+col=c("red", "blue"), lty=1:2, cex=0.8,
+text.font=3, box.lty=0, bg=)
+```
+```{r}
+# Creating the correlation matrix
+corr_mv <- cor(df[,1:7])
+```
+
+```{r}
+# Selecting only the 35 first components (they represent more than 90% of the proportion variance)
+principalDf <- pca_out$x[,1:35]
+```
+
+
+```{r}
+loadings <- as.data.frame(pca_out$rotation[,1:35])
+```
+
+```{r}
+write.csv(loadings, "sheets\\loadings_selected_PCs.csv", row.names=TRUE)
+```
+
+```{r}
+# Sample data (replace this with your actual data)
+set.seed(51)
+
+# Function to get the top 5 absolute loadings for each PC
+get_top_loadings <- function(pc_vector) {
+  top_indices <- order(abs(pc_vector), decreasing = TRUE)[1:3]
+  return(top_indices)
+}
+
+# Apply the function to each PC column
+top_indices_list <- apply(loadings[,1:4], 2, get_top_loadings)
+```
+
+```{r}
+merged_column <- unique(c(top_indices_list))
+round(loadings[merged_column,1:4],3)
+```
+
+```{r}
+write.csv(round(loadings[merged_column,1:4],3), "sheets\\loadings_selected_PCs.csv", row.names=TRUE)
+```
+
+
+
+```{r - avaliar se mantem}
+st_write(grid_with_all_attributes, "vectors/grid_with_attributes_and_35PCs.shp", append=FALSE)
+
+```
+
+
+```{r}
+set.seed(51)
+clustering <- kmeans(principalDf, centers=6, iter.max = 500, algorithm = "Lloyd")
+```
+
+```{r}
+clustering$size
+```
+
+```{r}
+principalDf <- as.data.frame(principalDf)
+principalDf$Cluster <- clustering$cluster
+principalDf$id <- subset$id
+```
+
+```{r}
+principalDf
+```
+
+```{r}
+grid_with_all_attributes <- merge(cell_grid, principalDf, by.x = 'id', by.y = 'id', all.x=TRUE)
+```
+
+```{r}
+grid_with_all_attributes <- st_as_sf(grid_with_all_attributes, crs = st_crs(cell_grid))
+```
+
+```{r}
+grid_classified <- grid_with_all_attributes[,c("id","Cluster")]
+```
+
+```{r}
+st_write(grid_classified, "vectors/grid_classified.shp", append=FALSE)
+```
+
+
+```{r}
+boundaries <- sf::st_read("vectors/boundaries/tts06_pd_83.shp")
+
+ggplot() +
+  geom_sf(data = grid_classified[!(is.na(grid_classified$Cluster)),], aes(fill = as.factor(Cluster)), color = NA) +
+  geom_sf(data = boundaries, color = "grey", fill = NA) + 
+  labs(fill = "Cluster", title = "Cluster locations in the study area") +
+  theme_minimal()
+``` 
+
+```{r}
+library(ggplot2)
+
+custom_colors <- c("#d6395e", "#33a02c", "#b0b0b0", "#ffb400", "#1f78f2", "#72df88")
+
+map <- ggplot() +
+  geom_sf(data = grid_classified[!(is.na(grid_classified$Cluster)),], aes(fill = as.factor(Cluster)), color = NA) +
+  geom_sf(data = boundaries, color = "#4a4a4a", fill = NA) + 
+  labs(fill = "Cluster") +
+  scale_fill_manual(values = custom_colors) +
+  theme_minimal()
+
+ggsave("C:/Users/brdia/Desktop/rsacc/figures/spatial_patterns_map.png", map, width = 10, height = 8, units = "cm")
+```
+
+```{r}
+map
+```
+
+
+```{r}
+# Assuming you have a data frame named "anova_df" with columns: cy_ac_emp, pto_ac_emp, ptp_ac_emp, wa_ac_emp, Cluster
+# Replace "anova_df" with your actual data frame
+
+# Create boxplots for each variable by the classes of the variable "Cluster" without outliers
+par(mfrow = c(2, 4))  # Set up a 2x2 layout for multiple plots
+
+# Boxplot 1: cy_ac_emp
+boxplot(BP_mean ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], main = "cy_ac_emp", outline = FALSE)
+
+# Boxplot 2: pto_ac_emp
+boxplot(TR_mean ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], main = "pto_ac_emp", outline = FALSE)
+
+# Boxplot 3: ptp_ac_emp
+boxplot(RES ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], main = "ptp_ac_emp", outline = FALSE)
+
+# Boxplot 4: wa_ac_emp
+boxplot(COM ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], outline = FALSE)
+
+# Boxplot 5: wa_ac_emp
+boxplot(GR_mean ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], outline = FALSE)
+
+# Boxplot 6: wa_ac_emp
+boxplot(CR_mean ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], outline = FALSE)
+
+# Boxplot 7: wa_ac_emp
+boxplot(DInRo ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], outline = FALSE)
+
+# Boxplot 8: wa_ac_emp
+boxplot(DInBP ~ Cluster, data = grid_with_all_attributes[!(is.na(grid_with_all_attributes$Cluster)),], outline = FALSE)
+
+# Reset the layout to default
+par(mfrow = c(1, 1))
+```
