@@ -1,0 +1,35 @@
+---
+title: "make-data"
+author: "Bruno Santos"
+format: html
+---
+
+In this notebook we save the data processed in R native format. 
+
+Load packages:
+
+```{r}
+library(ggplot2)
+library(here)
+library(sf)
+library(usethis)
+```
+
+Read processed data:
+
+```{r read-data}
+grid_with_attributes <- st_read("vectors\\output\\grid_with_attributes_35pcas_cluster.shp")
+grid_classified <- st_read("vectors\\output\\grid_classified.shp")
+grid_sam <- st_read("vectors\\output\\grid_sam.shp")
+grid_sam_classified <- st_read("vectors\\output\\grid_sam_classified.shp")
+```
+
+
+Save data:
+
+```{r save-data}
+usethis::use_data(grid_with_attributes, overwrite = TRUE)
+usethis::use_data(grid_classified, overwrite = TRUE)
+usethis::use_data(grid_sam, overwrite = TRUE)
+usethis::use_data(grid_sam_classified, overwrite = TRUE)
+```

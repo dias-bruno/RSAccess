@@ -1,0 +1,340 @@
+#' RSAccess: A data package to integrate remote sensing variables and job accessibility measures for the Greater Golden Horseshoe (GGH) area in  Ontario, Canada
+#'
+#' @docType package
+#' @name RSAccess-package
+#' @author Bruno Dos Santos, McMaster University, \email{dossanb@@mcmaster.ca}
+#' @references \url{https://github.com/dias-bruno/RSAccess}
+NULL
+
+##############################################
+##                DATA SETS                 ##
+##############################################
+
+## Cell grid with spatial patterns classification
+#'
+#' A simple features data frame with regular hexagons classified into 6 spatial patterns.
+#' In order to obtain this classification, we employed a Principal Component Analysis (PCA) to reduce the dimension of a dataset.  Then, using only the first thirty-five principal components, we carried out an unsupervised classification to identify groups that represent the distinct spatial patterns within the GGH.
+#' Each final cluster can be interpreted as a distinct spatial pattern with unique levels of built-up area density, land use, and street layout.
+#' The polygons were classified into: 1 - "High Building Density"; 2 - "Tree-lined Neighborhoods"; 3 - "Medium Building Density"; #' 4 - "Mixed Rural Use"; 5 - "Waterfront Housing"; 6 - "Farms and Rural Neighborhoods"
+#'
+#' @format A simple features data frame with 53,609 rows and 2 variables:
+#'
+#' \describe{
+#'   \item{id}{unique identifier for each polygon.}
+#'   \item{Cluster}{space pattern classification}
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name grid_classified
+#' @usage data(grid_classified)
+#' @source Global Human Settlement Layer (GHSL) (https://ghsl.jrc.ec.europa.eu/dataToolsOverview.php#inline-nav-R2023) Accessed: December 14, 2023
+#' @source OpenStreetMap (https://download.geofabrik.de/) Accessed: December 14, 2023
+#' @source Copernicus Global Land Service (CGLS) (https://land.copernicus.eu/global/index.html) Accessed: December 14, 2023
+#' @examples
+#'  data(grid_classified)
+#'  clusters <- grid_classified$Cluster
+"grid_classified"
+
+## Cell grid with remote sensing and roads attributes
+#'
+#' A simple features data frame with all attributes used during the classification process.
+#' In order to obtain this dataset, we extracted features from satellite images and from a road network shapefile.
+#' We employed a Principal Component Analysis (PCA) to reduce the dimension of a dataset.  Then, using only the first thirty-five principal components, we carried out an unsupervised classification to identify groups that represent the distinct spatial patterns within the GGH.
+#'
+#' @format A simple features data frame with 53,609 rows and 228 variables:
+#'
+#' \describe{
+#'   \item{id}{unique identifier for each polygon.}
+#'   \item{BP_min}{minimum value of built-up area}
+#'   \item{BP_max}{maximum value of built-up area}
+#'   \item{BP_mean}{average value of built-up area}
+#'   \item{BP_sum}{sum of built-up area}
+#'   \item{BP_std}{standard deviation of built-up area}
+#'   \item{BP_median}{median value of built-up area}
+#'   \item{BP_majorit}{majority value of built-up area}
+#'   \item{HE_min}{minimum value of building height}
+#'   \item{HE_max}{maximum value of building height}
+#'   \item{HE_mean}{average value of building height}
+#'   \item{HE_sum}{sum of building height}
+#'   \item{HE_std}{standard deviation of building height}
+#'   \item{HE_median}{median value of building height}
+#'   \item{HE_majorit}{majority value of building height}
+#'   \item{VO_min}{minimum value of buildings volume}
+#'   \item{VO_max}{maximum value of buildings volume}
+#'   \item{VO_mean}{average value of buildings volume}
+#'   \item{VO_sum}{sum of buildings volume}
+#'   \item{VO_std}{standard deviation of buildings volume}
+#'   \item{VO_median}{median value of buildings volume}
+#'   \item{VO_majorit}{majority value of buildings volume}
+#'   \item{NRC}{Percentage of non-residential and non-commercial area}
+#'   \item{RES}{Percentage of residential area}
+#'   \item{COM}{Percentage of commercial area}
+#'   \item{TR_min}{minimum value of tree fraction}
+#'   \item{TR_max}{maximum value of tree fraction}
+#'   \item{TR_mean}{average value of tree fraction}
+#'   \item{TR_sum}{sum of tree fraction}
+#'   \item{TR_std}{standard deviation of tree fraction}
+#'   \item{TR_median}{median value of tree fraction}
+#'   \item{TR_majorit}{majority value of tree fraction}
+#'   \item{CR_min}{minimum value of crop fraction}
+#'   \item{CR_max}{maximum value of crop fraction}
+#'   \item{CR_mean}{average value of crop fraction}
+#'   \item{CR_sum}{sum of crop fraction}
+#'   \item{CR_std}{standard deviation of crop fraction}
+#'   \item{CR_median}{median value of crop fraction}
+#'   \item{CR_majorit}{majority value of crop fraction}
+#'   \item{GR_min}{minimum value of grass fraction}
+#'   \item{GR_max}{maximum value of grass fraction}
+#'   \item{GR_mean}{average value of grass fraction}
+#'   \item{GR_sum}{sum of grass fraction}
+#'   \item{GR_std}{standard deviation of grass fraction}
+#'   \item{GR_median}{median value of grass fraction}
+#'   \item{GR_majorit}{majority value of grass fraction}
+#'   \item{WA_min}{minimum value of water fraction}
+#'   \item{WA_max}{maximum value of water fraction}
+#'   \item{WA_mean}{average value of water fraction}
+#'   \item{WA_sum}{sum of water fraction}
+#'   \item{WA_std}{standard deviation of water fraction}
+#'   \item{WA_median}{median value of water fraction}
+#'   \item{WA_majorit}{majority value of water fraction}
+#'   \item{SH_min}{minimum value of shrub area}
+#'   \item{SH_max}{maximum value of shrub area}
+#'   \item{SH_mean}{average value of shrub area}
+#'   \item{SH_sum}{sum of shrub area}
+#'   \item{SH_std}{standard deviation of shrub area}
+#'   \item{SH_median}{median value of shrub area}
+#'   \item{SH_majorit}{majority value of shrub area}
+#'   \item{SI_mean}{average value of road sinuosity}
+#'   \item{SI_sum}{sum of road sinuosity}
+#'   \item{SI_min}{minimum value of road sinuosity}
+#'   \item{SI_max}{maximum value of road sinuosity}
+#'   \item{SI_std}{standard deviation of road sinuosity}
+#'   \item{LE_mean}{average value of road length}
+#'   \item{LE_sum}{sum of road length}
+#'   \item{LE_min}{minimum value of road length}
+#'   \item{LE_max}{maximum value of road length}
+#'   \item{LE_std}{standard deviation of road length}
+#'   \item{NRo}{road count}
+#'   \item{NIn}{number of road intersections}
+#'   \item{DInBP}{road intersections divided by the sum of built-up area (NRo/BP_sum)}
+#'   \item{DInRo}{road intersections divided by count of roads (NRo/NRi)}
+#'   \item{NM_BP_min}{average of the neighbors for the variable BP_min}
+#'   \item{NM_BP_max}{average of the neighbors for the variable BP_max}
+#'   \item{NM_BP_mean}{average of the neighbors for the variable BP_mean}
+#'   \item{NM_BP_sum}{average of the neighbors for the variable BP_sum}
+#'   \item{NM_BP_std}{average of the neighbors for the variable BP_std}
+#'   \item{NM_BP_medi}{average of the neighbors for the variable BP_medi}
+#'   \item{NM_BP_majo}{average of the neighbors for the variable BP_majo}
+#'   \item{NM_HE_min}{average of the neighbors for the variable HE_min}
+#'   \item{NM_HE_max}{average of the neighbors for the variable HE_max}
+#'   \item{NM_HE_mean}{average of the neighbors for the variable HE_mean}
+#'   \item{NM_HE_sum}{average of the neighbors for the variable HE_sum}
+#'   \item{NM_HE_std}{average of the neighbors for the variable HE_std}
+#'   \item{NM_HE_medi}{average of the neighbors for the variable HE_medi}
+#'   \item{NM_HE_majo}{average of the neighbors for the variable HE_majo}
+#'   \item{NM_VO_min}{average of the neighbors for the variable VO_min}
+#'   \item{NM_VO_max}{average of the neighbors for the variable VO_max}
+#'   \item{NM_VO_mean}{average of the neighbors for the variable VO_mean}
+#'   \item{NM_VO_sum}{average of the neighbors for the variable VO_sum}
+#'   \item{NM_VO_std}{average of the neighbors for the variable VO_std}
+#'   \item{NM_VO_medi}{average of the neighbors for the variable VO_medi}
+#'   \item{NM_VO_majo}{average of the neighbors for the variable VO_majo}
+#'   \item{NM_NRC}{average of the neighbors for the variable Percentage of non-residential and non-commercial area}
+#'   \item{NM_RES}{average of the neighbors for the variable Percentage of residential area}
+#'   \item{NM_COM}{average of the neighbors for the variable Percentage of commercial area}
+#'   \item{NM_TR_min}{average of the neighbors for the variable TR_min}
+#'   \item{NM_TR_max}{average of the neighbors for the variable TR_max}
+#'   \item{NM_TR_mean}{average of the neighbors for the variable TR_mean}
+#'   \item{NM_TR_sum}{average of the neighbors for the variable TR_sum}
+#'   \item{NM_TR_std}{average of the neighbors for the variable TR_std}
+#'   \item{NM_TR_medi}{average of the neighbors for the variable TR_medi}
+#'   \item{NM_TR_majo}{average of the neighbors for the variable TR_majo}
+#'   \item{NM_CR_min}{average of the neighbors for the variable CR_min}
+#'   \item{NM_CR_max}{average of the neighbors for the variable CR_max}
+#'   \item{NM_CR_mean}{average of the neighbors for the variable CR_mean}
+#'   \item{NM_CR_sum}{average of the neighbors for the variable CR_sum}
+#'   \item{NM_CR_std}{average of the neighbors for the variable CR_std}
+#'   \item{NM_CR_medi}{average of the neighbors for the variable CR_medi}
+#'   \item{NM_CR_majo}{average of the neighbors for the variable CR_majo}
+#'   \item{NM_GR_min}{average of the neighbors for the variable GR_min}
+#'   \item{NM_GR_max}{average of the neighbors for the variable GR_max}
+#'   \item{NM_GR_mean}{average of the neighbors for the variable GR_mean}
+#'   \item{NM_GR_sum}{average of the neighbors for the variable GR_sum}
+#'   \item{NM_GR_std}{average of the neighbors for the variable GR_std}
+#'   \item{NM_GR_medi}{average of the neighbors for the variable GR_medi}
+#'   \item{NM_GR_majo}{average of the neighbors for the variable GR_majo}
+#'   \item{NM_WA_min}{average of the neighbors for the variable WA_min}
+#'   \item{NM_WA_max}{average of the neighbors for the variable WA_max}
+#'   \item{NM_WA_mean}{average of the neighbors for the variable WA_mean}
+#'   \item{NM_WA_sum}{average of the neighbors for the variable WA_sum}
+#'   \item{NM_WA_std}{average of the neighbors for the variable WA_std}
+#'   \item{NM_WA_medi}{average of the neighbors for the variable WA_medi}
+#'   \item{NM_WA_majo}{average of the neighbors for the variable WA_majo}
+#'   \item{NM_SH_min}{average of the neighbors for the variable SH_min}
+#'   \item{NM_SH_max}{average of the neighbors for the variable SH_max}
+#'   \item{NM_SH_mean}{average of the neighbors for the variable SH_mean}
+#'   \item{NM_SH_sum}{average of the neighbors for the variable SH_sum}
+#'   \item{NM_SH_std}{average of the neighbors for the variable SH_std}
+#'   \item{NM_SH_medi}{average of the neighbors for the variable SH_medi}
+#'   \item{NM_SH_majo}{average of the neighbors for the variable SH_majo}
+#'   \item{DNM_BP_min}{normalized difference between the cell and its neighbors for the variable BP_min}
+#'   \item{DNM_BP_max}{normalized difference between the cell and its neighbors for the variable BP_max}
+#'   \item{DNM_BP_mea}{normalized difference between the cell and its neighbors for the variable BP_mea}
+#'   \item{DNM_BP_sum}{normalized difference between the cell and its neighbors for the variable BP_sum}
+#'   \item{DNM_BP_std}{normalized difference between the cell and its neighbors for the variable BP_std}
+#'   \item{DNM_BP_med}{normalized difference between the cell and its neighbors for the variable BP_med}
+#'   \item{DNM_BP_maj}{normalized difference between the cell and its neighbors for the variable BP_maj}
+#'   \item{DNM_HE_min}{normalized difference between the cell and its neighbors for the variable HE_min}
+#'   \item{DNM_HE_max}{normalized difference between the cell and its neighbors for the variable HE_max}
+#'   \item{DNM_HE_mea}{normalized difference between the cell and its neighbors for the variable HE_mea}
+#'   \item{DNM_HE_sum}{normalized difference between the cell and its neighbors for the variable HE_sum}
+#'   \item{DNM_HE_std}{normalized difference between the cell and its neighbors for the variable HE_std}
+#'   \item{DNM_HE_med}{normalized difference between the cell and its neighbors for the variable HE_med}
+#'   \item{DNM_HE_maj}{normalized difference between the cell and its neighbors for the variable HE_maj}
+#'   \item{DNM_VO_min}{normalized difference between the cell and its neighbors for the variable VO_min}
+#'   \item{DNM_VO_max}{normalized difference between the cell and its neighbors for the variable VO_max}
+#'   \item{DNM_VO_mea}{normalized difference between the cell and its neighbors for the variable VO_mea}
+#'   \item{DNM_VO_sum}{normalized difference between the cell and its neighbors for the variable VO_sum}
+#'   \item{DNM_VO_std}{normalized difference between the cell and its neighbors for the variable VO_std}
+#'   \item{DNM_VO_med}{normalized difference between the cell and its neighbors for the variable VO_med}
+#'   \item{DNM_VO_maj}{normalized difference between the cell and its neighbors for the variable VO_maj}
+#'   \item{DNM_NRC}{normalized difference between the cell and its neighbors for the variable Percentage of non-residential and non-commercial area}
+#'   \item{DNM_RES}{normalized difference between the cell and its neighbors for the variable Percentage of residential area}
+#'   \item{DNM_COM}{normalized difference between the cell and its neighbors for the variable Percentage of commercial area}
+#'   \item{DNM_TR_min}{normalized difference between the cell and its neighbors for the variable TR_min}
+#'   \item{DNM_TR_max}{normalized difference between the cell and its neighbors for the variable TR_max}
+#'   \item{DNM_TR_mea}{normalized difference between the cell and its neighbors for the variable TR_mea}
+#'   \item{DNM_TR_sum}{normalized difference between the cell and its neighbors for the variable TR_sum}
+#'   \item{DNM_TR_std}{normalized difference between the cell and its neighbors for the variable TR_std}
+#'   \item{DNM_TR_med}{normalized difference between the cell and its neighbors for the variable TR_med}
+#'   \item{DNM_TR_maj}{normalized difference between the cell and its neighbors for the variable TR_maj}
+#'   \item{DNM_CR_min}{normalized difference between the cell and its neighbors for the variable CR_min}
+#'   \item{DNM_CR_max}{normalized difference between the cell and its neighbors for the variable CR_max}
+#'   \item{DNM_CR_mea}{normalized difference between the cell and its neighbors for the variable CR_mea}
+#'   \item{DNM_CR_sum}{normalized difference between the cell and its neighbors for the variable CR_sum}
+#'   \item{DNM_CR_std}{normalized difference between the cell and its neighbors for the variable CR_std}
+#'   \item{DNM_CR_med}{normalized difference between the cell and its neighbors for the variable CR_med}
+#'   \item{DNM_CR_maj}{normalized difference between the cell and its neighbors for the variable CR_maj}
+#'   \item{DNM_GR_min}{normalized difference between the cell and its neighbors for the variable GR_min}
+#'   \item{DNM_GR_max}{normalized difference between the cell and its neighbors for the variable GR_max}
+#'   \item{DNM_GR_mea}{normalized difference between the cell and its neighbors for the variable GR_mea}
+#'   \item{DNM_GR_sum}{normalized difference between the cell and its neighbors for the variable GR_sum}
+#'   \item{DNM_GR_std}{normalized difference between the cell and its neighbors for the variable GR_std}
+#'   \item{DNM_GR_med}{normalized difference between the cell and its neighbors for the variable GR_med}
+#'   \item{DNM_GR_maj}{normalized difference between the cell and its neighbors for the variable GR_maj}
+#'   \item{DNM_WA_min}{normalized difference between the cell and its neighbors for the variable WA_min}
+#'   \item{DNM_WA_max}{normalized difference between the cell and its neighbors for the variable WA_max}
+#'   \item{DNM_WA_mea}{normalized difference between the cell and its neighbors for the variable WA_mea}
+#'   \item{DNM_WA_sum}{normalized difference between the cell and its neighbors for the variable WA_sum}
+#'   \item{DNM_WA_std}{normalized difference between the cell and its neighbors for the variable WA_std}
+#'   \item{DNM_WA_med}{normalized difference between the cell and its neighbors for the variable WA_med}
+#'   \item{DNM_WA_maj}{normalized difference between the cell and its neighbors for the variable WA_maj}
+#'   \item{DNM_SH_min}{normalized difference between the cell and its neighbors for the variable SH_min}
+#'   \item{DNM_SH_max}{normalized difference between the cell and its neighbors for the variable SH_max}
+#'   \item{DNM_SH_mea}{normalized difference between the cell and its neighbors for the variable SH_mea}
+#'   \item{DNM_SH_sum}{normalized difference between the cell and its neighbors for the variable SH_sum}
+#'   \item{DNM_SH_std}{normalized difference between the cell and its neighbors for the variable SH_std}
+#'   \item{DNM_SH_med}{normalized difference between the cell and its neighbors for the variable SH_med}
+#'   \item{DNM_SH_maj}{normalized difference between the cell and its neighbors for the variable SH_maj}
+#'   \item{PC1}{Principal Component 1}
+#'   \item{PC2}{Principal Component 2}
+#'   \item{PC3}{Principal Component 3}
+#'   \item{PC4}{Principal Component 4}
+#'   \item{PC5}{Principal Component 5}
+#'   \item{PC6}{Principal Component 6}
+#'   \item{PC7}{Principal Component 7}
+#'   \item{PC8}{Principal Component 8}
+#'   \item{PC9}{Principal Component 9}
+#'   \item{PC10}{Principal Component 10}
+#'   \item{PC11}{Principal Component 11}
+#'   \item{PC12}{Principal Component 12}
+#'   \item{PC13}{Principal Component 13}
+#'   \item{PC14}{Principal Component 14}
+#'   \item{PC15}{Principal Component 15}
+#'   \item{PC16}{Principal Component 16}
+#'   \item{PC17}{Principal Component 17}
+#'   \item{PC18}{Principal Component 18}
+#'   \item{PC19}{Principal Component 19}
+#'   \item{PC20}{Principal Component 20}
+#'   \item{PC21}{Principal Component 21}
+#'   \item{PC22}{Principal Component 22}
+#'   \item{PC23}{Principal Component 23}
+#'   \item{PC24}{Principal Component 24}
+#'   \item{PC25}{Principal Component 25}
+#'   \item{PC26}{Principal Component 26}
+#'   \item{PC27}{Principal Component 27}
+#'   \item{PC28}{Principal Component 28}
+#'   \item{PC29}{Principal Component 29}
+#'   \item{PC30}{Principal Component 30}
+#'   \item{PC31}{Principal Component 31}
+#'   \item{PC32}{Principal Component 32}
+#'   \item{PC33}{Principal Component 33}
+#'   \item{PC34}{Principal Component 34}
+#'   \item{PC35}{Principal Component 35}
+#'   \item{Cluster}{space pattern classification}
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name grid_classified
+#' @usage data(grid_classified)
+#' @source Global Human Settlement Layer (GHSL) (https://ghsl.jrc.ec.europa.eu/dataToolsOverview.php#inline-nav-R2023) Accessed: December 14, 2023
+#' @source OpenStreetMap (https://download.geofabrik.de/) Accessed: December 14, 2023
+#' @source Copernicus Global Land Service (CGLS) (https://land.copernicus.eu/global/index.html) Accessed: December 14, 2023
+#' @examples
+#'  data(grid_with_attributes)
+#'  built_up_mean <- grid_with_attributes$BP_mean
+"grid_with_attributes"
+
+## Cell grid with SAM measures
+#'
+#' A simple features data frame with Spatial Access Measures (SAM).
+#' In order to obtain this dataset, we transferred the SAM data from the dissemination blocks to the cell grid using a weighted area interpolation.
+#' This technique enables us to disaggregate accessibility values to another spatial unit, smoothing variations between polygons. It achieves this by using the area of overlapping geometries to apportion variables.
+#'
+#' @format A simple features data frame with 53,609 rows and 5 variables:
+#'
+#' \describe{
+#'   \item{id}{unique identifier for each polygon.}
+#'   \item{cy_ac_emp}{normalised value of a cell's access to employment (Cycling mode)}
+#'   \item{pto_ac_emp}{normalised value of a cell's access to employment (Publit transit (off peak) mode)}
+#'   \item{ptp_ac_emp}{normalised value of a cell's access to employment (Publit transit (on peak) mode)}
+#'   \item{wa_ac_emp}{normalised value of a cell's access to employment (Walking mode)}
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name grid_classified
+#' @usage data(grid_classified)
+#' @source Statistics Canada (https://www150.statcan.gc.ca/n1/en/catalogue/27260001) Accessed: December 14, 2023
+#' @examples
+#'  data(grid_sam)
+#'  cycling <- grid_sam$cy_ac_emp
+"grid_sam"
+
+## Cell grid classified with SAM measures
+#'
+#' A simple features data frame with Spatial Access Measures (SAM) and the spatial patterns classification.
+#'
+#' @format A simple features data frame with 13,097 rows and 5 variables:
+#'
+#' \describe{
+#'   \item{id}{unique identifier for each polygon.}
+#'   \item{Cluster}{space pattern classification}
+#'   \item{cy_ac_emp}{normalised value of a cell's access to employment (Cycling mode)}
+#'   \item{pto_ac_emp}{normalised value of a cell's access to employment (Publit transit (off peak) mode)}
+#'   \item{ptp_ac_emp}{normalised value of a cell's access to employment (Publit transit (on peak) mode)}
+#'   \item{wa_ac_emp}{normalised value of a cell's access to employment (Walking mode)}
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name grid_classified
+#' @usage data(grid_classified)
+#' @source Statistics Canada (https://www150.statcan.gc.ca/n1/en/catalogue/27260001) Accessed: December 14, 2023
+#' @examples
+#'  data(grid_sam_classified)
+#'  cycling <- grid_sam_classified$cy_ac_emp
+"grid_sam_classified"
+

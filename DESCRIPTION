@@ -1,13 +1,17 @@
 Package: RSAccess
 Type: Package
-Title: What the Package Does (Title Case)
+Title: A data package to integrate remote sensing variables and job accessibility measures for the Greater Golden Horseshoe (GGH) area in  Ontario, Canada
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Bruno Dias dos Santos
+Maintainer: Bruno Dias dos Santos <dossanb@mcmaster.cat>
+Description: The RSAccess integrates variables extracted from remote sensing data and from a road network database with accessibility measures.
+  The RSAccess package is a component of the GEO712 course's final project at the School of Earth, Environment & Society of McMaster University.
+  The main objective of the final project is to analyze and compare job accessibility levels across different spatial patterns, focusing on the Greater Golden Horseshoe area (GGH) in Ontario, Canada.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/dias-bruno/RSAccess
+URL: https://github.com/dias-bruno/RSAccess, https://dias-bruno.github.io/RSAccess/
 BugReports: https://github.com/dias-bruno/RSAccess/issues
+Depends: 
+    R (>= 2.10)
+RoxygenNote: 7.2.3

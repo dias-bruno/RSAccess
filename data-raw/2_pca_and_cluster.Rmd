@@ -11,7 +11,7 @@ This notebook is a component of the GEO712 course's final project at the School 
 
 Within this notebook, we present a methodology to perform a Principal Component Analysis (PCA) and identify clusters through an unsupervised classification. The input files for this notebook include:
 
--   Hexagonal grid\_(grid_with_all_attributes.shp.shp)\_: A cell grid comprised of hexagons with an area of 500 m² with all attributes, obtained after running the notebook *1a_features_extraction.qmd*.
+-   Hexagonal grid\_(grid_with_all_attributes.shp)\_: A cell grid comprised of hexagons with an area of 500 m² with all attributes, obtained after running the notebook *1a_features_extraction.qmd*.
 
 -   Local Municipality Boundaries: Shapefile defining the study area's boundaries.
 
@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Load R libraries used in the notebook:
 
-```{r}
+```{r load-libraries}
 library(sf)  # To read shapefiles *only*
 library(ggplot2) # To plot maps *only*
 library(here) # To insert the correct folder to save the pictures in 
@@ -33,43 +33,43 @@ library(here) # To insert the correct folder to save the pictures in
 
 Reading the cell grid and creating a sf DataFrame.
 
-```{r}
+```{r read-grid}
 cell_grid <- st_read("vectors\\output\\grid_with_all_attributes.shp")
 ```
 
 Visualizing the grip in a map format:
 
-```{r}
+```{r grid-map}
 plot(st_geometry(cell_grid), axes = TRUE)
 ```
 
 Visualizing the first five rows of the dataset:
 
-```{r}
+```{r grid-head}
 head(cell_grid,5)
 ```
 
 Obtaining the name of the columns of the dataset:
 
-```{r}
+```{r grid-columns}
 names(cell_grid)
 ```
 
-Summarizing statistics of the data:
+Summarizing statistics of the data.
 
-```{r}
+```{r grid-summary}
 summary(cell_grid)
 ```
 
 Plotting a map of the data set by the variable "BP_mean", which means the average value of the "Built-up area" identified in the satellite images within the cell.
 
-```{r}
+```{r bpmean-map}
 plot(st_geometry(cell_grid), col = cell_grid$BP_mean, axes = TRUE, border = NA, main = "Mean of Built-up area")
 ```
 
 The R built-in functions make difficult to visualize the difference of the variable between the cells. Because of this, we will use the ggplot library to plot a new map.
 
-```{r}
+```{r bpmean-ggmap}
 ggplot() +
   geom_sf(data = cell_grid, aes(fill = BP_mean), color = NA) + 
   theme_minimal() 
@@ -79,20 +79,20 @@ Now we can see the differences in the built-up area within the study area.
 
 Checking the total number of rows in the dataset.
 
-```{r}
+```{r grid-nrow}
 nrow(cell_grid)
 ```
 
 Excluding possible missing values and rechecking the total number of rows.
 
-```{r}
+```{r remove-na}
 cell_grid <- na.omit(cell_grid)
 nrow(cell_grid)
 ```
 
 Plotting a histogram of the variable "BP_mean".
 
-```{r}
+```{r bpmean-hist}
 hist(as.numeric(unlist(cell_grid["BP_mean"])), xlab = "Mean of built-up area", ylab = "Frequency", main = "Histogram of BP_mean")
 ```
 
@@ -100,25 +100,25 @@ Understanding intraurban differences is crucial for comprehending variations in 
 
 Now, plotting a histogram of the filtered data.
 
-```{r}
+```{r filtered-hist}
 hist(cell_grid[(cell_grid$RES + cell_grid$COM) >= 0.1, ]$BP_mean, xlab = "Mean of built-up area", ylab = "Frequency", main = "Histogram of BP_mean of the selected cells")
 ```
 
 Creating a new dataset with the selected data.
 
-```{r}
+```{r create-subset}
 subset <- as.data.frame(cell_grid[(cell_grid$RES + cell_grid$COM) >= 0.1, ])
 ```
 
 Creating a dataframe, excluding the variables 'id' and 'geometry' to perform the PCA Analysis.
 
-```{r}
+```{r remove-id-geo}
 df <- subset[,2:(length(subset)-1)]
 ```
 
 Visualization of the correlation matrix of the variables related to the built-up area.
 
-```{r}
+```{r correlation-matrix}
 corr_mv <- cor(df[,1:7])
 corr_mv
 ```
@@ -129,13 +129,13 @@ We can see that some variables have a high correlation. For instance, BP_mean an
 
 Creating the PCA, normalizing the data.
 
-```{r}
+```{r pca-error}
 #pca_out <- prcomp(df, center = TRUE, scale = TRUE)
 ```
 
 There is an error in our data set, because one (or more) of our variables has a constant value, making it impossible to scale the z score. The code above will remove columns with constant values:
 
-```{r}
+```{r remove-constant-column}
 remove <- c()
 
 # Evaluating if the variance of each column is equal to zero
@@ -151,25 +151,25 @@ df <- subset(df, select = -remove)
 
 Conting the number of variables of the new dataset.
 
-```{r}
+```{r ncol}
 ncol(df)
 ```
 
 visualizing the index of the column that has constant value.
 
-```{r}
+```{r remove-index}
 remove
 ```
 
 Performing a new PCA analysis.
 
-```{r}
+```{r pca}
 pca_out <- prcomp(df, center = TRUE, scale = TRUE)
 ```
 
 Visualizing the summary of our PCA.
 
-```{r}
+```{r pca-summary}
 summary(pca_out)
 ```
 
@@ -177,7 +177,7 @@ We can see that the first component explains 35% of the variability in our data;
 
 Plotting a graph to visualizing the cumulative proportion of variance.
 
-```{r}
+```{r var-plot}
 # Calculating the proportion of variance explained by each principal component
 var <- pca_out$sdev^2 / sum(pca_out$sdev^2)
 
@@ -206,7 +206,7 @@ text.font=3, box.lty=0, bg=)
 
 Plotting a biplot graph.
 
-```{r}
+```{r biplot}
 biplot(pca_out)
 ```
 
@@ -214,19 +214,19 @@ Due to the large number of variables, it is difficult to see a pattern in the bi
 
 Selecting the components where the cumulative variation of the original dataset is 90%.
 
-```{r}
+```{r 35PCs}
 principalDf <- pca_out$x[,1:35]
 ```
 
 Obtaining the loadings of the selected components.
 
-```{r}
+```{r loadings}
 loadings <- as.data.frame(pca_out$rotation[,1:35])
 ```
 
 Visualizing the top 3 absolute loadings for each PC.
 
-```{r}
+```{r highest-loadings}
 set.seed(51)
 
 get_top_loadings <- function(pc_vector) {
@@ -239,13 +239,13 @@ top_indices_list <- apply(loadings[,1:4], 2, get_top_loadings)
 
 Visualizing the indexes of the variables with the highest loadings in the first four principal components.
 
-```{r}
+```{r top-loadins}
 top_indices_list
 ```
 
 Selecting the 3 principal loadings for the first four principal components.
 
-```{r}
+```{r view-top-loadings}
 merged_column <- unique(c(top_indices_list))
 round(loadings[merged_column,1:4],3)
 ```
@@ -256,50 +256,50 @@ Across all components, variables related to neighbor relations demonstrated the 
 
 Creating the clustering model. After several experiments and visual analyses, we settled on six final clusters, considering the best trade-off between identifying meaningful clusters and their quantity.
 
-```{r}
+```{r clustering}
 set.seed(51)
 clustering <- kmeans(principalDf, centers=6, iter.max = 500, algorithm = "Lloyd")
 ```
 
 Visualizing the amount of features in each group.
 
-```{r}
+```{r cluster-sizes}
 clustering$size
 ```
 
 Adding the cluster classification to the PC dataframe
 
-```{r}
+```{r create-df}
 principalDf <- as.data.frame(principalDf)
 principalDf$Cluster <- clustering$cluster
 principalDf$id <- subset$id
 ```
 
-```{r}
+```{r viewing-df}
 principalDf
 ```
 
 Bringing these new variables to the grid dataset.
 
-```{r}
+```{r merge-attributes}
 grid_with_all_attributes <- merge(cell_grid, principalDf, by.x = 'id', by.y = 'id', all.x=TRUE)
 ```
 
 Transforming this dataset into a sf dataset.
 
-```{r}
+```{r create-sfdf}
 grid_with_all_attributes <- st_as_sf(grid_with_all_attributes, crs = st_crs(cell_grid))
 ```
 
 Creating a dataset with the classification.
 
-```{r}
+```{r create-classidied-df}
 grid_classified <- grid_with_all_attributes[,c("id","Cluster")]
 ```
 
 Plotting a map of the spatial patterns.
 
-```{r}
+```{r cluster-map}
 boundaries <- sf::st_read("vectors//boundaries//tts06_pd_83.shp")
 
 custom_colors <- c("#d6395e", "#33a02c", "#b0b0b0", "#ffb400", "#1f78f2", "#72df88")
@@ -316,7 +316,7 @@ map
 
 Selection of a variable to evaluate the difference between the clusters.
 
-```{r}
+```{r boxplot}
 par(mfrow = c(2, 4))
 
 # Boxplot 1: Built-up Mean
@@ -350,18 +350,18 @@ par(mfrow = c(1, 1))
 
 Saving the cluster's figure.
 
-```{r}
+```{r export-figure}
 ggsave(here::here("figures", "spatial_patterns_map.png"), map, width = 10, height = 8, units = "cm")
 ```
 
 Exporting the classification dataset.
 
-```{r}
+```{r export-classification}
 st_write(grid_classified, "vectors\\output\\grid_classified.shp", append=FALSE)
 ```
 
 Dataset export with all attributes, selected principal components and clustering result.
 
-```{r}
+```{r export-all-attributes}
 st_write(grid_with_all_attributes, "vectors\\output\\grid_with_attributes_35pcas_cluster.shp", append=FALSE)
 ```

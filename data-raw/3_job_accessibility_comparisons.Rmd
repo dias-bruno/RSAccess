@@ -1,150 +1,185 @@
 ---
-title: "Untitled"
+title: "Comparing job accessibility"
 author: "Bruno Dias dos Santos"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
+## Introduction
+
+This notebook is a component of the GEO712 course's final project at the School of Earth, Environment & Society of McMaster University. The main objective of the final project is to analyze and compare job accessibility levels across different spatial patterns, focusing on the Greater Golden Horseshoe area (GGH) in Ontario, Canada.
+
+Within this notebook, we present a methodology to analyze differences of job accessibility across diverse spatial patterns. The input files for this notebook include:
+
+-   Classified grid\_(grid_classified.shp)\_: A cell grid comprised of hexagons with an area of 500 m² with the cluster classification, obtained after running the notebook *2_pca_and_cluster.Rmd*.
+
+-   SAM grid\_(grid_classified.shp)\_: A cell grid comprised of hexagons with an area of 500 m² with the SAM variables, obtained after running the notebook *1b_features_extraction_SAM.qmd*.
+
+## R Markdown
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-library(sf)
-library(ggplot2)
+Load R libraries used in the notebook:
+
+```{r load-libraries}
+library(sf)  # To read shapefiles *only*
+library(ggplot2) # To plot maps *only*
 ```
 
-```{r}
-clusters <- st_read("vectors\\grid_classified.shp")
+Reading the cell grid classified and creating a sf DataFrame.
+
+```{r read-clusters}
+clusters <- st_read("vectors\\output\\grid_classified.shp")
 ```
 
-```{r}
-sam <- read_sf("vectors/grid_sam.shp")
+Reading the cell grid with SAM variables and creating a sf DataFrame.
+
+```{r read-sam}
+sam <- read_sf("vectors\\output\\grid_sam.shp")
 ```
 
-```{r}
+Summarizing statistics of the SAM data.
+
+```{r summary-sam}
 summary(sam)
 ```
-```{r}
-data <- merge(as.data.frame(grid), sam, by.x = 'id', by.y = 'id', all.x=TRUE)
-data <- st_as_sf(data, crs = st_crs(grid))
+
+Merging both grids.
+
+```{r merge-data}
+data <- merge(as.data.frame(clusters), as.data.frame(sam)[,-6], by.x = 'id', by.y = 'id', all.x=TRUE)
+data <- st_as_sf(data, crs = st_crs(clusters))
 ```
 
-```{r}
+Selecting only the analyzed area.
+
+```{r filter-data}
 data <- data[!(is.na(data$Cluster)),]
 ```
 
+Viewing the difference in accessibility to work between the clusters using boxplots.
 
-```{r}
+```{r boxplots}
 par(mfrow = c(2, 2))
 
 custom_colors <- c("#d6395e", "#33a02c", "#b0b0b0", "#ffb400", "#1f78f2", "#72df88")
 
-# Boxplot 1: cy_ac_emp
+# Boxplot 1: Walking
 boxplot(wa_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
 ylab = "Walking", col = custom_colors, outline = FALSE)
 
-# Boxplot 2: pto_ac_emp
+# Boxplot 2: Cycling
 boxplot(cy_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
 ylab = "Cycling", col = custom_colors, outline = FALSE)
 
-# Boxplot 3: ptp_ac_emp
+# Boxplot 3: Public transit
 boxplot(pto_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
 ylab = "Public transit", col = custom_colors, outline = FALSE)
 
-# Boxplot 4: wa_ac_emp
+# Boxplot 4: Public transit (peak)
 boxplot(ptp_ac_emp ~ Cluster, data = data, xlab = "Spatial patterns",
 ylab = "Public transit (peak)", col = custom_colors, outline = FALSE)
 par(mfrow = c(1, 1))
 ```
 
-```{r}
+Now, let's carry out some statistical analyses to evaluate this difference between the spatial patterns.
 
-# Set up the layout for the plots
-par(mfrow = c(2, 2), mar = c(4, 4, 0, 0), bg = "white")
+## Walking
 
-# Define a vector of custom colors
-custom_colors <- c("#d6395e", "#33a02c", "#b0b0b0", "#ffb400", "#1f78f2", "#72df88")
+Map of job accessibility (walking mode).
 
-# List of variables
-variables <- c("wa_ac_emp", "cy_ac_emp", "pto_ac_emp", "ptp_ac_emp")
-ylab_names <- c("Walking", "Cycling", "Public transit", "Public transit (peak)")
-
-# Create boxplots in a loop
-for (i in seq_along(variables)) {
-  boxplot(data[[variables[i]]] ~ data$Cluster,
-          xlab = "Spatial patterns",
-          ylab = ylab_names[i],
-          col = custom_colors,
-          outline = FALSE)
-}
-
-# Reset the layout
-par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)  # Adjust the margin back to default
-```
-
-# Walking
-
-```{r}
+```{r walking-map}
 ggplot() +
   geom_sf(data = sam, aes(fill = wa_ac_emp), color = NA) +
   labs(fill = "Job acessibility", title = "Walking") +
   theme_minimal()
 ```
 
-```{r}
+A [Kruskal-Wallis](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance) test was used to evaluate the difference in median between the spatial patterns.
+
+```{r kruskal-walking}
 kruskal.test(wa_ac_emp ~ Cluster, data = data)
 ```
 
-```{r}
+Once we have identified a difference in the median values (p-value < significance level), we will carry out a [Pairwise Wilcox Test](https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test) to compare the difference for each pair of clusters.
+
+```{r wilcox-walking}
 pairwise.wilcox.test(data$wa_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
 ```
 
-
 # Cycling
 
-```{r}
+Map of job accessibility (cycling mode).
+
+```{r cycling-map}
 ggplot() +
   geom_sf(data = sam, aes(fill = cy_ac_emp), color = NA) +
   labs(fill = "Job acessibility", title = "Cycling") +
   theme_minimal()
 ```
 
-```{r}
+A [Kruskal-Wallis](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance) test was used to evaluate the difference in median between the spatial patterns.
+
+```{r kruskal-cycling}
 kruskal.test(cy_ac_emp ~ Cluster, data = data)
 ```
 
-```{r}
+Once we have identified a difference in the median values (p-value < significance level), we will carry out a [Pairwise Wilcox Test](https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test) to compare the difference for each pair of clusters.
+
+```{r wilcox-cycling}
 pairwise.wilcox.test(data$cy_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
 ```
+
 # Public transit (off peak)
-```{r}
+
+Map of job accessibility (Public transit (off peak)).
+
+```{r ptoffpeak-map}
 ggplot() +
   geom_sf(data = sam, aes(fill = pto_ac_emp), color = NA) +
   labs(fill = "Job acessibility", title = "Public transit (off peak)") +
   theme_minimal()
 ```
 
-```{r}
+A [Kruskal-Wallis](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance) test was used to evaluate the difference in median between the spatial patterns.
+
+```{r kruskal-ptoffpeak}
 kruskal.test(pto_ac_emp ~ Cluster, data = data)
 ```
 
-```{r}
+Once we have identified a difference in the median values (p-value < significance level), we will carry out a [Pairwise Wilcox Test](https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test) to compare the difference for each pair of clusters.
+
+```{r wilcox-ptoffpeak}
 pairwise.wilcox.test(data$pto_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
 ```
 
 # Public transit (peak)
-```{r}
+
+Map of job accessibility (Public transit (on peak)).
+
+```{r ptpeak-map}
 ggplot() +
   geom_sf(data = sam, aes(fill = ptp_ac_emp), color = NA) +
   labs(fill = "Job acessibility", title = "Public transit (peak)") +
   theme_minimal()
 ```
 
-```{r}
+A [Kruskal-Wallis](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance) test was used to evaluate the difference in median between the spatial patterns.
+
+```{r kruskal.test-ptopeak}
 kruskal.test(ptp_ac_emp ~ Cluster, data = data)
 ```
 
-```{r}
+Once we have identified a difference in the median values (p-value < significance level), we will carry out a [Pairwise Wilcox Test](https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test) to compare the difference for each pair of clusters.
+
+```{r wilcox-ptopeak}
 pairwise.wilcox.test(data$ptp_ac_emp, data$Cluster, p.adjust.method = "bonferroni")
 ```
+
+## Export data
+```{r export-data}
+st_write(data, "vectors\\output\\grid_sam_classified.shp", append=FALSE)
+```
+

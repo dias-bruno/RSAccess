@@ -1,10 +1,8 @@
 ---
-title: "Feature extraction and dataset creation"
+title: "Transfering SAM measures"
 author: "Bruno D. dos Santos"
 format: html
 jupyter: python3
-execute: 
-  cache: true
 ---
 
 ## Introduction
@@ -14,25 +12,21 @@ This notebook is a component of the GEO712 course's final project at the School 
 Within this notebook, we present a methodology for transferring Spatial Access Measures onto a hexagonal grid. The input files for this notebook include:
 -   Hexagonal grid _(hexagon_500m2.shp)_: A cell grid comprised of hexagons with an area of 500 m². Remote sensing imagery and road network data attributes will be transferred to this grid. This data was obtained with QGIS's create grid function.
 -   Spatial Access Measures (SAM) _(acs_walking.csv, acs_cycling.csv, acs_public_transit_offpeak.csv,  acs_public_transit_peak.csv)_: A national dataset in CSV format that measures accessibility to various opportunities, considering different modes of transport. The SAM database computed for each dissemination block accessibility score in a scale of zero to one (0 - 1), where zero means the least and one means maximum accessibility. For this work, we used only the accessibility measures for employments based on the transportation modes: access via public transit during peak hours, access via public transit during off-peak hours, access via cycling and access via walking.
+-   Dissemination blocks _(dissemination_blocks_study_area.shp)_: spatial unit used by the SAM project to aggregate accessibility metrics. We selected the dissemination blocks that touch the study area using QGIS, in order to reduce the size of the data. 
 
-The output from this notebook includes shapefiles containing the features in the cell grid.
+The output from this notebook includes shapefiles containing the SAM variables in the cell grid.
 
 ## Quarto
 
 Load python libraries used in the notebook:
-```{python}
+```{python load-libraries}
 import geopandas as gpd
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from geopandas.tools import sjoin
-import rasterio
-from rasterstats import zonal_stats
-import shapely
-from shapely.geometry import Polygon, LineString
+from tobler.area_weighted import area_interpolate
+from sklearn.preprocessing import MinMaxScaler
 ```
 
-Reading the cell grid and creating a GeoDataFrame. We generate this hexagonal grid using QGIS software, indicating a value of 0.8774 meters to the principal diagonal, resulting in a hexagon with 500 m².
+Reading the cell grid and creating a GeoDataFrame.
 ```{python reading-grid}
 grid = gpd.read_file("vectors\\input\\hexagon_500m2.shp", geometry = 'geometry')
 ```
@@ -41,221 +35,118 @@ Creating a spatial index for the hexagonal grid to expedite spatial relations be
 ```{python spatial-index-grid}
 grid.sindex
 ```
-
-### Remote sensing attributes
-
-Setting the satellite images' path: 
-```{python rs-path}
-raster_list = {'BP':'GHS_BUILT_S_E2018_epsg26917.tif', 'HE': 'GHS_BUILT_H_E2020_epsg26917.tif', 'VO': 'GHS_BUILT_V_E2020_epsg26917.tif', 'CL': 'GHS_BUILT_C_FUN_E2018_epsg26917.tif',
-            'TR':'PROBAV_LC100_2018_Tree_epsg26917.tif',
-            'CR':'PROBAV_LC100_2018_Crops_epsg26917.tif',
-            'GR':'PROBAV_LC100_2018_Grass_epsg26917.tif',
-            'WA':'PROBAV_LC100_2018_Water_epsg26917.tif',
-            'SH':'PROBAV_LC100_2018_Shrub_epsg26917.tif'}
+Reading SAM metrics and creating new datasets. Each line refers to a mode of transport: 
+```{python reading-csv}
+walking = pd.read_csv("csvs\\input\\acs_walking.csv", sep=',', encoding = "ISO-8859-1") #Walking
+cycling = pd.read_csv("csvs\\input\\acs_cycling.csv", sep=',', encoding = "ISO-8859-1") #Cycling
+pto = pd.read_csv("csvs\\input\\acs_public_transit_offpeak.csv", sep=',', encoding = "ISO-8859-1") #Public Transit (off peak)
+ptp = pd.read_csv("csvs\\input\\acs_public_transit_peak.csv", sep=',', encoding = "ISO-8859-1") #Public Transit (peak)
 ```
 
-Extracting attributes from the satellite images to the hexagonal grid:
-```{python extract-rs-attributes}
-
-new_grid_rs = grid
-
-for key in raster_list.keys():
-    path_image = 'rasters' + '\\' + input + '\\' + raster_list[key]
-   
-    if key in ['BP', 'HE', 'VO', 'TR', 'GR','CR', 'WA', 'SH']:
-        zs = zonal_stats(grid, path_image, stats=['min', 'max', 'mean', 'std', 'median', 'majority', 'sum'])
-        df = pd.DataFrame(zs).fillna(0)
-        df.columns = key + '_' + df.columns
-        new_grid_rs = new_grid_rs.merge(df, left_index=True, right_index=True)    
-       
-    elif key in ['CL']:
-        
-        count = zonal_stats(grid, path_image, stats=['count'])
-
-        if  key == 'CL':
-            cmap = {0: 'NRC', 1: 'RES', 2:'COM'}
-            zs = zonal_stats(grid, path_image, categorical = True, category_map=cmap)
-            df = pd.DataFrame(zs).fillna(0)
-            total = df['NRC'] + df['RES'] + df['COM']
-            df['NRC'] = df['NRC']/total
-            df['RES'] = df['RES']/total
-            df['COM'] = df['COM']/total
-            new_grid_rs = new_grid_rs.merge(df, left_index=True, right_index=True)
+Selecting only the columns that we will use for each metric.
+```{python select-columns}
+walking = walking[['DBUID', 'acs_idx_emp']]
+cycling = cycling[['DBUID','acs_idx_emp']]
+pto = pto[['DBUID','acs_idx_emp']]
+ptp = ptp[['DBUID','acs_idx_emp']]
 ```
 
-Saving the data so we can continue from this part next time.
-```{python save-rs-data}
-new_grid_rs.to_file("vectors\\output\\rs_attributes.shp")
-# new_grid_rs = gpd.read_file("vectors\\output\\rs_attributes.shp")
+Rename the columns to differentiate each one.
+```{python rename-columns}
+walking.columns = ['DBUID','wa_ac_emp']
+cycling.columns = ['DBUID','cy_ac_emp']
+pto.columns = ['DBUID','pto_ac_emp']
+ptp.columns = ['DBUID','ptp_ac_emp']
 ```
 
-
-### Road network attributes
-
-Reading the road network shapefile and creating a GeoDataFrame.
-```{python read-road-network}
-roads = gpd.read_file("vectors\\input\\roads_osm_cl.shp")
+Merging the data and creating a new data set with all the accessibility measures.
+```{python merge-data}
+SAM = pd.merge(walking, cycling, left_on= 'DBUID', right_on='DBUID')
+SAM = pd.merge(SAM, pto, left_on= 'DBUID', right_on='DBUID')
+SAM = pd.merge(SAM, ptp, left_on= 'DBUID', right_on='DBUID')
 ```
 
-Creating a spatial index for the road network to expedite spatial relations between geometries:
-```{python road-network-spatial-index}
-roads.sindex
+Display of the SAM dataset.
+```{python sam}
+SAM
 ```
 
-Extracting attributes from the road network to the hexagonal grid:
-```{python extract-road-network-attributes}
-explode = gpd.overlay(grid, roads, how='intersection', keep_geom_type=False).explode()
-explode.index.names = ['level_1', 'level_2']
-explode['SI'] = 0.0
+Reading the dissemination blocks.
+```{python read-db}
+db = gpd.read_file("vectors\\input\\dissemination_blocks_study_area.shp", geometry = 'geometry')
+```
 
-for (level_1, level_2), group in explode.groupby(level=['level_1', 'level_2']):
-        try:
-            start_pt = LineString(explode['geometry'][level_1][level_2]).coords[0]
-            end_pt = LineString(explode['geometry'][level_1][level_2]).coords[-1]
-            straight_line = LineString((start_pt, end_pt))
-            line = LineString(explode['geometry'][level_1][level_2])
+Creating a spatial index for the dissemination blocks to expedite spatial relations between geometries:
+```{python spatial-index-db}
+db.sindex
+```
 
-            if straight_line.length == 0:
-                sinuosity = 1
-            else:
-                sinuosity = line.length / (straight_line.length + 0.01)
+Display of the dissemination blocks.
+```{python db}
+db
+```
 
-            explode['SI'][level_1][level_2] = sinuosity 
-        
-        except:
-                explode['SI'][level_1][level_2] = explode['SI'][level_1][level_2 - 1]
-        
-explode['LE'] = explode['geometry'].length
+Merging work accessibility measures into the disclosure blocks.
+```{python transfer-sam-to-db}
+db['DBUID'] = db['DBUID'].astype(str)
+SAM['DBUID'] = SAM['DBUID'].astype(str)
+db_sam = db.merge(SAM, left_on= 'DBUID', right_on='DBUID', how = 'left' )
+```
 
-attributes_to_transfer = ['SI', 'LE']
+Converting the regular DataFrame into a GeoDataFrame.
+```{python geodataframe-db-sam}
+db_sam = gpd.GeoDataFrame(db_sam, geometry = 'geometry')
+```
 
-weighted_values = pd.DataFrame()
+Plotting a map of the dissemination blocks.
+```{python db-map}
+db_sam.plot()
+```
 
-for attribute in attributes_to_transfer:
-    explode[f'{attribute}_weighted'] = explode[attribute] * explode['LE']
+Filling in 'na' values.
+```{python filling-na}
+db_sam.iloc[:,-4:] = db_sam.iloc[:,-4:].fillna(0)
+```
 
-    sum_weighted = explode.groupby('id')[f'{attribute}_weighted'].sum()
+## Transfering data
 
-    sum_length = explode.groupby('id')['LE'].sum()
+Data interpolation. In this cell, we will transfer the variables from one spatial unit (dissemination blocks) to another spatial unit (grid of cells):
+```{python interpolation}
+interpolate =  grid
 
-    weighted_values[attribute + '_mean'] = sum_weighted / sum_length
-    weighted_values[attribute + '_sum'] = explode.groupby('id')[attribute].sum()
-    weighted_values[attribute + '_min'] = explode.groupby('id')[attribute].min()
-    weighted_values[attribute + '_max'] = explode.groupby('id')[attribute].max()
-    weighted_values[attribute + '_std'] = explode.groupby('id')[attribute].std()
+for coluna in db_sam.iloc[:,-4:]:
+    ct_area_interp_gdf = area_interpolate(source_df=db_sam, 
+                                          target_df=grid,
+                                          intensive_variables=[coluna])
     
-weighted_values['NRo'] = explode.groupby('id')['LE'].count()
-
-# Add the weighted columns to the original DataFrame 
-new_grid_roads = pd.merge(grid, weighted_values, left_on='id', right_index=True, how='left').fillna(0)
+    interpolate[coluna] = ct_area_interp_gdf[coluna]
 ```
 
-Saving the data so we can continue from this part next time.
-```{python save-roads-attributes}
-new_grid_roads.to_file("vectors\\output\\roads_attributes.shp")
-#new_grid_roads = gpd.read_file("vectors\\output\\roads_attributes.shp")
+Map of the variable "Job accessibility (public transit - off peak)" of the dissemination blocks.
+```{python db-pto-map}
+db_sam.plot(column="pto_ac_emp", legend=True)
 ```
 
-Reading the roads intersections shapefile and creating a GeoDataFrame with spatial. After this, we'll do a spatial join between the intersection roads points and the hexagonal grid.
-```{python}
-intersections = gpd.read_file("vectors\\input\\intersections_points.shp")
-intersections.sindex
-intersections['NIn'] = 0
-it = pd.DataFrame(sjoin(grid, intersections, how="left", op='intersects').groupby('id')['NIn'].count())
-del intersections
+Map of the variable "Job accessibility (public transit - off peak)" of the cell grid.
+```{python grid-pto-map}
+interpolate.plot(column="pto_ac_emp", legend=True)
 ```
 
-Bringing road attributes to the point intersections file to create new attributes.
-```{python}
-it['id'] = it.index
-it.index.names = ['']
-it = it.merge(new_grid_roads[['id','NRo']], left_on='id', right_on ='id', how='left').merge(new_grid_rs[['id','BP_sum','geometry']] ,left_on='id', right_on ='id', how='left')
-it = gpd.GeoDataFrame(it)
+Reorganizing the columns.
+```{python reorg-column}
+interpolate = interpolate[['id','cy_ac_emp', 'pto_ac_emp', 'ptp_ac_emp', 'wa_ac_emp', 'geometry']]
+
 ```
 
-Creating new variables for the intersection file.
-```{python}
-it['DInBP'] = it['NIn'] / (it['BP_sum'] + 0.1)
-it['DInRo'] = it['NIn']  / it['NRo']
+Data rescaling using the MinMax approach.
+```{python scalling-data}
+scaler = MinMaxScaler()
+interpolate.iloc[:,-5:-1] = scaler.fit(interpolate.iloc[:,-5:-1]).transform(interpolate.iloc[:,-5:-1])
 ```
 
-Saving the data so we can continue from this part next time.
-```{python}
-it.to_file("vectors\\output\\grade_with_intersections_points.shp")
-#it = gpd.read_file("vectors\\output\\grade_with_intersections_points.shp")
+## Export data
+
+Exporting the grid with SAM variables.
+```{python export-data}
+interpolate.to_file("vectors//output//grid_sam.shp")
 ```
-
-Reorganizing the intersection GeoDataFrame columns. 
-```{python}
-it = it[['id','NIn','NRo', 'BP_sum', 'DInBP','DInRo', 'geometry']]
-```
-
-Creating a new GeoDataFrame with all attributes.
-```{python}
-grid_attributes = new_grid_rs.iloc[:,:-1].merge(new_grid_roads.iloc[:,:-1].merge(it[['id','NIn','DInBP','DInRo','geometry']], left_on = 'id', right_on = 'id', how="left"), left_on = 'id', right_on = 'id', how = 'left')
-```
-
-Filling missing values with 0.
-```{python}
-grid_attributes = grid_attributes.fillna(0)
-```
-
-### Neighboors attributes
-
-Reading the grid distance matrix. This matrix was generated using QGIS software, indicating the six nearest target cells for each hexagon. 
-```{python}
-matrix = pd.read_csv("csvs\\input\\grid_distance_matrix.csv")
-```
-
-Merging the distance matrix with the grid GeoDataFrame with attributes.
-```{python}
-id_origem = 'InputID'
-id_destin = 'TargetID'
-data = matrix.merge(grid_attributes, left_on =id_destin, right_on='id')
-```
-
-Obtaining the neighbors' means for each grid attribute.
-```{python}
-NM = data.groupby(id_origem, sort=True).mean()
-NM.insert(0,'InputID',NM.index)
-NM['id'] = NM[id_origem]
-NM.index.names = ['']
-NM = NM.reset_index()
-NM = NM[new_grid_rs.iloc[:,:-1].columns]
-NM
-```
-
-Obtaining the normalized difference neighbors' means for each grid attribute.
-```{python}
-DNM = (pd.DataFrame(new_grid_rs.iloc[:,:-1]) - pd.DataFrame(NM))/(pd.DataFrame(new_grid_rs.iloc[:,:-1]) + pd.DataFrame(NM))
-DNM = DNM.fillna(0)
-DNM['id'] = NM['id']
-DNM
-```
-
-Renaming the GeoDataFrame columns.
-```{python}
-DNM.columns = 'DNM_' + DNM.columns
-NM.columns = 'NM_' + NM.columns
-```
-
-Merging GeoDataFrames: 
-```{python}
-DNM = DNM.merge(grid, right_on = 'id', left_on = 'DNM_id', how = 'left')
-DNM = DNM.drop('id', axis = 1)
-DNM
-```
-
-Creating a GeoDataFrame with all attributes:
-```{python}
-final_grid = grid_attributes.iloc[:,:-1].merge(NM, left_on = 'id', right_on = 'NM_id', how = 'left').merge(DNM, left_on = 'id', right_on = 'DNM_id', how = 'left')
-final_grid = final_grid.drop(['NM_id','DNM_id'], axis = 1)
-final_grid
-```
-
-Saving the final GeoDataFrame:
-```{python}
-gpd.GeoDataFrame(final_grid).to_file("vectors\\output\\grid_with_all_attributes.shp")
-# final_grid = gpd.read_file("vectors\\output\\grid_with_all_attributes.shp")
-```
-
