@@ -12,15 +12,21 @@ These data are stored in the "data-raw" folder, and the files are organized base
 
 -   *csvs*: Comma-separated-values files.
 
-Within each these folders, the files are divided into input data and output data. o process the data, the following notebooks need to be executed:
+Within each these folders, the files are divided into input data and output data. To process the data, the following notebooks need to be executed:
 
--   *1a_feature_extraction.qmd*: Mostly Python code for extracting satellite images and road network attributes. The data are processed, and the output is some new datasets with variables saved in the "output" folder.
++--------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Step                                                                     | Notebooks                                                                                                                                                                                                                 |
++==========================================================================+===========================================================================================================================================================================================================================+
+| To extract attributes from the satellite imagery and other spatial data. | -   *1a_feature_extraction.qmd*: Mostly Python code for extracting satellite images and road network attributes. The data are processed, and the output is some new datasets with variables saved in the "output" folder. |
+|                                                                          |                                                                                                                                                                                                                           |
+|                                                                          | -   *1b_feature_extraction_SAM.qmd*: Mostly Python code for extracting job accessibility attributes. The data are processed, and the output is a new dataset with variables saved in the "output" folder.                 |
++--------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| To perform the data analysis applied to the dataset.                     | -   *2_pca_and_cluster.Rmd*: R code for conducting PCA analysis followed by clustering classification to identify spatial patterns.                                                                                       |
+|                                                                          |                                                                                                                                                                                                                           |
+|                                                                          | -   *3_job_accessibility_comparisons.Rmd*: R code for evaluating differences in job accessibility between the spatial patterns identified in the previous step.                                                           |
++--------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
--   *1b_feature_extraction_SAM.qmd*: Mostly Python code for extracting job accessibility attributes. The data are processed, and the output is a new dataset with variables saved in the "output" folder.
-
--   *2_pca_and_cluster.Rmd*: R code for conducting PCA analysis followed by clustering classification to identify spatial patterns.
-
--   *3_job_accessibility_comparisons.Rmd*: R code for evaluating differences in job accessibility between the spatial patterns identified in the previous step.
+As the data has been downloaded and inserted into the correct folder (data-raw), it is not necessary to run the above notebooks in the order indicated by the numbers. You can only run the data analysis notebooks because all the necessary datasets are in the vectors and csvs folder.
 
 Subsequently, run:
 
