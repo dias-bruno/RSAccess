@@ -462,12 +462,13 @@ Georgia Institute of Technology,
 % in the abstract
 \begin{abstract}
 This work aims to analyze job accessibility across diverse spatial
-patterns in the Greater Golden Horseshoe area, Ontario, Canada. Focusing
-on walking, cycling, and public transit during peak and off-peak hours,
-we identified six distinct spatial patterns with variations in building
-density, land use, and street layout. Results show that higher building
-density spatial patterns exhibit elevated accessibility across
-transportation modes. Despite the region's low overall density,
+patterns in the Greater Golden Horseshoe area, Ontario, Canada. Using
+variables extracted from satellite images, we identified six distinct
+spatial patterns with variations in building density, land use, and
+street layout. Afterwards, we compared accessibility to employment
+considering different modes of transportation in the identified spatial
+patterns. Results show that higher building density spatial patterns
+exhibit elevated accessibility for all transportation modes. The job
 accessibility is concentrated in approximately 10\% of the GGH, posing
 challenges for spatial planners to devise a transportation system that
 accommodates these territorial differences. Statistical analyses confirm
@@ -544,7 +545,7 @@ America (Ontario, 2020).
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/rsacc/figures/mto-map-ggh-study-area-en-800x776-2022-01-31.png}
+\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/RSAccess/figures/mto-map-ggh-study-area-en-800x776-2022-01-31.png}
 \caption{Greater Golden Horseshoe Study Area. Source: Ontario, 2020.}
 \label{fig:GGH}
 \end{figure}
@@ -559,18 +560,18 @@ mapped onto a hexagonal grid. The second step employs Principal
 Component Analysis (PCA) to reduce dataset dimensionality. Utilizing
 only the principal components, we conduct a non-supervised
 classification to identify clusters representing the distinct spatial
-patterns within the GGH.\\
-In the final step, we compare job accessibility levels among the
-identified spatial patterns. Two statistical tests, the Kruskal-Wallis
-test and the pairwise Wilcoxon test, are employed to evaluate variations
-in job accessibility levels. For this work, we used already processed
-and classified satellite images provided by the Global Human Settlement
-Layer (GHSL) (European Commission. Joint Research Centre., 2023) and the
-Copernicus Global Land Service (CGLS) (Buchhorn et al., n.d.); Spatial
-Access Measures (SAM) dataset (Statistics Canada, n.d.), which measures
-accessibility to different opportunities, considering different modes of
-transportation; and a road network (OpenStreetMap, 2023) - more
-information about the data can be seen in the appendix.
+patterns within the GGH. In the final step, we compare job accessibility
+levels among the identified spatial patterns. Two statistical tests, the
+Kruskal-Wallis test and the pairwise Wilcoxon test, are employed to
+evaluate variations in job accessibility levels. For this work, we used
+already processed and classified satellite images provided by the Global
+Human Settlement Layer (GHSL) (European Commission. Joint Research
+Centre., 2023) and the Copernicus Global Land Service (CGLS) (Buchhorn
+et al., n.d.); Spatial Access Measures (SAM) dataset (Statistics Canada,
+n.d.), which measures accessibility to different opportunities,
+considering different modes of transportation; and a road network
+(OpenStreetMap, 2023) - more information about the data can be seen in
+the appendix.
 
 \hypertarget{feature-extraction}{%
 \subsection{Feature extraction}\label{feature-extraction}}
@@ -715,7 +716,7 @@ trade-off between identifying meaningful clusters and their quantity
 
 \begin{figure}[!bt]
 \centering
-\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/rsacc/figures/spatial_patterns_map.png}
+\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/RSAccess/figures/spatial_patterns_map.png}
 \caption{Study area spatial patterns.}
 \label{fig:clusters_map}
 \end{figure}
@@ -782,7 +783,7 @@ challenges in distinguishing them based solely on average values.
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/rsacc/figures/job-access.png}
+\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/RSAccess/figures/job-access.png}
 \caption{Job accessibility by mode in the Greater Golden Horseshoe Study Area.}
 \label{fig:map_jobs}
 \end{figure}

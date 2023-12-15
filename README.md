@@ -1,16 +1,62 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# RSAccess
+# RSAccess <a href="https://dias-bruno.github.io/RSAccess/"><img src="man/figures/logo.png" alt="RSAccess website" align="right" height="85"/></a>
 
 <!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+[![GitHub
+Stars](https://img.shields.io/github/stars/dias-bruno/amazonULC?style=social)](https://github.com/dias-bruno/amazonULC/stargazers)
+
+![GitHub search hit counter:
+R](https://img.shields.io/github/search/dias-bruno/amazonULC/R)  
+![GitHub search hit counter:
+spatial](https://img.shields.io/github/search/dias-bruno/RSAccess/spatial)
+![GitHub search hit counter:
+interaction](https://img.shields.io/github/search/dias-bruno/RSAccess/interaction)
+![GitHub search hit counter:
+gravity](https://img.shields.io/github/search/dias-bruno/RSAccess/gravity)
+![GitHub search hit counter:
+workshop](https://img.shields.io/github/search/dias-bruno/RSAccess/workshop)
+
+![GitHub
+issues](https://img.shields.io/github/issues/dias-bruno/RSAccess)
+![GitHub
+release](https://img.shields.io/github/release-date/dias-bruno/RSAccess)
+![GitHub commit
+activity](https://img.shields.io/github/commit-activity/y/dias-bruno/RSAccess)
+![GitHub last
+commit](https://img.shields.io/github/last-commit/dias-bruno/RSAccess)
+
 <!-- badges: end -->
 
-The goal of RSAccess is to …
+The `RSAccess` integrates variables extracted from remote sensing data
+and from a road network database with accessibility measures. The
+RSAccess package is a component of the GEO712 course’s final project at
+the School of Earth, Environment & Society of McMaster University. The
+main objective of the final project was to analyze and compare job
+accessibility levels across different spatial patterns, focusing on the
+Greater Golden Horseshoe area (GGH) in Ontario, Canada.
+
+Using variables extracted from satellite images, we identified six
+distinct spatial patterns with variations in building density, land use,
+and street layout. The spatial patterns were classified using principal
+component analysis (PCA), followed by a clustering model. Afterwards, we
+compared accessibility to employment considering different modes of
+transportation in the identified spatial patterns. Results show that
+higher building density spatial patterns exhibit elevated accessibility
+for all transportation modes. The job accessibility is concentrated in
+approximately 10% of the GGH, posing challenges for spatial planners to
+devise a transportation system that accommodates these territorial
+differences. Statistical analyses confirm significant differences in job
+accessibility among spatial patterns.
 
 ## Installation
 
-You can install the development version of RSAccess from
+You can install the development version of amazonULC from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -18,34 +64,63 @@ You can install the development version of RSAccess from
 devtools::install_github("dias-bruno/RSAccess")
 ```
 
-## Example
+## Examples
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example showing how to plot the map of the spatial
+patterns identified in the Greater Golden Horseshoe area. The polygons
+were classified into:
+
+1.  *High Building Density*
+
+2.  *Tree-lined Neighborhoods*
+
+3.  *Medium Building Density*
+
+4.  *Mixed Rural Use*
+
+5.  *Waterfront Housing*
+
+6.  *Farms and Rural Neighborhoods*
 
 ``` r
 library(RSAccess)
+library(ggplot2)
+
+data(grid_sam_classified)
+
+ggplot() +
+  geom_sf(data = grid_sam_classified, aes(fill = as.factor(Cluster)), color = NA) +
+  labs(fill = "Spatial Patterns") +
+  theme_minimal()
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+cd .
+
+This example shows how to plot a map of job accessibility (Public
+transit (peak)).
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+data(grid_sam)
+
+ggplot() +
+
+  geom_sf(data = grid_sam, aes(fill = ptp_ac_emp), color = NA) +
+
+  labs(fill = "Job acessibility", title = "Public transit (peak)") +
+
+  theme_minimal()
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
-You can also embed plots, for example:
+Visualizing the difference in accessibility to work between the clusters
+using a boxplot, considering public transport (pico) as the mode of
+transport:
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+``` r
+boxplot(ptp_ac_emp ~ Cluster, data = grid_sam_classified, xlab = "Spatial patterns", ylab = "Public transit (peak)", outline = FALSE)
+```
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->

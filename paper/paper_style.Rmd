@@ -20,7 +20,7 @@ affiliation:
 keywords: ["Job Accessibility","Spatial Patterns" , "Transportation Modes","Greater Golden Horseshoe" , "Urban Planning"]
 
 abstract: |
-  This work aims to analyze job accessibility across diverse spatial patterns in the Greater Golden Horseshoe area, Ontario, Canada. Focusing on walking, cycling, and public transit during peak and off-peak hours, we identified six distinct spatial patterns with variations in building density, land use, and street layout. Results show that higher building density spatial patterns exhibit elevated accessibility across transportation modes. Despite the region's low overall density, accessibility is concentrated in approximately 10% of the GGH, posing challenges for spatial planners to devise a transportation system that accommodates these territorial differences. Statistical analyses confirm significant differences in job accessibility among spatial patterns.
+  This work aims to analyze job accessibility across diverse spatial patterns in the Greater Golden Horseshoe area, Ontario, Canada. Using variables extracted from satellite images, we identified six distinct spatial patterns with variations in building density, land use, and street layout. Afterwards, we compared accessibility to employment considering different modes of transportation in the identified spatial patterns. Results show that higher building density spatial patterns exhibit elevated accessibility for all transportation modes. The job accessibility is concentrated in approximately 10% of the GGH, posing challenges for spatial planners to devise a transportation system that accommodates these territorial differences. Statistical analyses confirm significant differences in job accessibility among spatial patterns.
 
 # use some specific Tex packages if needed. 
 # with_ifpdf: true
@@ -53,7 +53,7 @@ The Greater Golden Horseshoe (GGH) constitutes the urban region centered around 
 ```{=tex}
 \begin{figure}[!t]
 \centering
-\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/rsacc/figures/mto-map-ggh-study-area-en-800x776-2022-01-31.png}
+\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/RSAccess/figures/mto-map-ggh-study-area-en-800x776-2022-01-31.png}
 \caption{Greater Golden Horseshoe Study Area. Source: Ontario, 2020.}
 \label{fig:GGH}
 \end{figure}
@@ -128,7 +128,7 @@ Only one-quarter of the study area was analyzed to perform the clustering classi
 ```{=tex}
 \begin{figure}[!bt]
 \centering
-\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/rsacc/figures/spatial_patterns_map.png}
+\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/RSAccess/figures/spatial_patterns_map.png}
 \caption{Study area spatial patterns.}
 \label{fig:clusters_map}
 \end{figure}
@@ -158,10 +158,11 @@ Figure \ref{fig:map_jobs} illustrates job accessibility by mode in the Greater G
 }
 \end{table}
 ```
+
 ```{=tex}
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/rsacc/figures/job-access.png}
+\includegraphics[width=3.5in]{C:/Users/brdia/Desktop/RSAccess/figures/job-access.png}
 \caption{Job accessibility by mode in the Greater Golden Horseshoe Study Area.}
 \label{fig:map_jobs}
 \end{figure}

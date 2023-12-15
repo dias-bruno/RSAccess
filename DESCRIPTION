@@ -6,7 +6,7 @@ Author: Bruno Dias dos Santos
 Maintainer: Bruno Dias dos Santos <dossanb@mcmaster.cat>
 Description: The RSAccess integrates variables extracted from remote sensing data and from a road network database with accessibility measures.
   The RSAccess package is a component of the GEO712 course's final project at the School of Earth, Environment & Society of McMaster University.
-  The main objective of the final project is to analyze and compare job accessibility levels across different spatial patterns, focusing on the Greater Golden Horseshoe area (GGH) in Ontario, Canada.
+  The main objective of the final project was to analyze and compare job accessibility levels across different spatial patterns, focusing on the Greater Golden Horseshoe area (GGH) in Ontario, Canada.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

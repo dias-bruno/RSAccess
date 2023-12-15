@@ -2,9 +2,9 @@
 
 The original data are too heavy to share using git so they are not versioned. They can be obtained from:
 
--   Link to raw-data: **INSERT LINK HERE**
+-   Link to the data: [data-raw](https://mcmasteru365-my.sharepoint.com/:u:/r/personal/dossanb_mcmaster_ca/Documents/RSAccess/data-raw.rar?csf=1&web=1&e=yVzKvO)
 
-These data are stored in the "raw-data" folder, and the files are organized based on their extensions:
+These data are stored in the "data-raw" folder, and the files are organized based on their extensions:
 
 -   *vectors*: Shapefiles composed of five separate files: .shp (main file), .shx (index file), .prj (projection definition file), .dbf (dBASE table file), and .cpg (codepage for identifying the character set to be used).
 
