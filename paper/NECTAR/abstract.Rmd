@@ -1,0 +1,20 @@
+---
+title: "NECTAR"
+author: "Bruno Dias dos Santos"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+
+In transportation studies, accessibility refers to the potential to reach spatially distributed places and opportunities, such as jobs, parks, cultural activities, health services and education. Examining labour force participation and studies on jobs accessibility is an essential tool for understanding urban form, the spatial mismatch between jobs and housing, and the balance between employment and housing locations. In this context, this work is guided by the following question: How do job accessibility levels vary considering diverse spatial patterns? The primary objective of this study is to analyze and compare the levels of accessibility to work in different spatial patterns in the Greater Golden Horseshoe (GGH) area in Ontario, Canada. *Adopting walking, cycling and off-peak and on-peak public transportation as modes of transport, we also investigate how levels of accessibility to work between spatial patterns may vary when adopting different accessibility metrics.*
+
+Our methodology comprises four primary steps. In the initial step, we conduct feature extraction and dataset creation, extracting urban form attributes from satellite imagery and road network data, subsequently mapped onto a hexagonal grid. The second step involves applying Principal Component Analysis (PCA) to reduce dataset dimensionality. Utilizing only the principal components, we conduct a non-supervised classification to identify clusters representing distinct spatial patterns within the GGH. In the final step, we compare job accessibility levels among the identified spatial patterns. We compute the accessibility measures using two methodologies: i) applying a gravity model, and ii) applying the Two-Stage Floating Catchment Area (2SFCA), aiming to consider competition from the perspective of the population for opportunities within an accessibility measure.
+
+We identify six distinct spatial patterns in the study area, characterized by differences in building density, land use, location, and street layout. Under the gravity model, higher building density spatial patterns exhibit elevated accessibility for all transportation modes, with job accessibility concentrated in approximately 10% of the GGH. *When considering the 2SFCA, the findings reveal...*
+
+The statistical tests confirmed significant differences in job accessibility among spatial patterns.
